@@ -1,0 +1,23 @@
+# Data
+data/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Environment
+.env
+
+# dbt
+target/
+dbt_packages/
+dbt_cloud/
+
+# Airflow
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
