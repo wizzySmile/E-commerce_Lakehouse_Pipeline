@@ -10,13 +10,16 @@ test-paths: ["tests"]
 macro-paths: ["macros"]
 
 clean-targets:
-  - target
-  - dbt_packages
+    - target
+    - dbt_packages
 
 models:
   ecommerce_lakehouse:
     staging:
       +materialized: view
+
+    core:
+      +materialized: table
 
     marts:
       +materialized: table

@@ -22,7 +22,7 @@ models:
         tests:
           - not_null
 
-  - name: dim_date
+  - name: dim_dates
     description: calendar dimension
     columns:
       - name: date_key
@@ -100,13 +100,13 @@ models:
         tests:
           - relationships:
               arguments:
-                to: ref('dim_date')
+                to: ref('dim_dates')
                 field: date_key
       - name: shipping_limit_date_key
         tests:
           - relationships:
               arguments:
-                to: ref('dim_date')
+                to: ref('dim_dates')
                 field: date_key
 
   - name: fact_orders
@@ -127,7 +127,7 @@ models:
         tests:
           - relationships:
               arguments:
-                to: ref('dim_date')
+                to: ref('dim_dates')
                 field: date_key
       - name: order_status
         tests:
@@ -170,7 +170,7 @@ models:
         tests:
           - relationships:
               arguments:
-                to: ref('dim_date')
+                to: ref('dim_dates')
                 field: date_key
   
   - name: fact_reviews
@@ -192,13 +192,13 @@ models:
         tests:
           - relationships:
               arguments:
-                to: ref('dim_date')
+                to: ref('dim_dates')
                 field: date_key
       - name: review_answer_date_key
         tests:
           - relationships:
               arguments:
-                to: ref('dim_date')
+                to: ref('dim_dates')
                 field: date_key
       - name: review_score
         tests:

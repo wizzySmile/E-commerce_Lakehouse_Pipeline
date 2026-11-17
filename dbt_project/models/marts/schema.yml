@@ -1,0 +1,73 @@
+version: 2
+
+models:
+  - name: mart_customer_metrics
+    description: "One row per customer. Lifetime value, orders, delivery experience, reviews and payments."
+    columns:
+      - name: customer_key
+        tests:
+          - unique
+          - not_null
+      - name: customer_unique_id
+        tests:
+          - not_null
+      - name: total_orders
+        tests:
+          - not_null
+      - name: lifetime_value
+        description: "Total money customer has spent"
+        tests:
+          - not_null
+      - name: avg_review_score
+        description: "Average review from 1 to 5"
+
+  - name: mart_monthly_revenue
+    description: "One row per year + month. Total revenue and orders for Finance."
+    columns:
+      - name: year
+        tests:
+          - not_null
+      - name: month
+        tests:
+          - not_null
+      - name: total_revenue
+        tests:
+          - not_null
+      - name: total_orders
+        tests:
+          - not_null
+
+  - name: mart_marketing_performance
+    description: "One row per year + month + state + city. For Marketing to see where customers come from."
+    columns:
+      - name: year
+        tests:
+          - not_null
+      - name: month
+        tests:
+          - not_null
+      - name: customer_state
+        tests:
+          - not_null
+      - name: total_revenue
+        tests:
+          - not_null
+
+  - name: mart_operations_performance
+    description: "One row per year + month + state. Delivery speed, late orders and freight cost for Operations."
+    columns:
+      - name: year
+        tests:
+          - not_null
+      - name: month
+        tests:
+          - not_null
+      - name: customer_state
+        tests:
+          - not_null
+      - name: total_orders
+        tests:
+          - not_null
+      - name: late_delivery_count
+        tests:
+          - not_null
