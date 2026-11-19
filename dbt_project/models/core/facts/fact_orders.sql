@@ -12,7 +12,7 @@ SELECT
     END AS is_late_delivery,
     COUNT(DISTINCT oi.order_item_id) AS total_items,
     COUNT(DISTINCT oi.product_id) AS total_products,
-    COALESCE(SUM(oi.price), 0)AS total_order_value,
+    COALESCE(SUM(oi.price), 0) AS total_order_value,
     COALESCE(SUM(oi.freight_value), 0) AS total_freight_value
 FROM {{ ref('stg_orders') }} ord
 
@@ -20,5 +20,7 @@ LEFT JOIN {{ ref('stg_order_items') }} oi
     ON ord.order_id = oi.order_id
 
 LEFT JOIN {{ ref('dim_customers') }} c
-    ON ord.customer_id = c.customer_id
+  ON c.customer_id = ord.customer_id
+  AND c.is_current = true
+
 GROUP BY ALL

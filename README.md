@@ -10,6 +10,10 @@ Fly.io
 Power BI
 Architecture:
 
+![Coloured e-commerce model ERD](docs/ecommerce_data_model_erd.png)
+
+[DBML source for dbdiagram.io](docs/ecommerce_data_model.dbml)
+
 CSV → Bronze → Silver → Gold → Power BI
 
 Medallion Architecture:

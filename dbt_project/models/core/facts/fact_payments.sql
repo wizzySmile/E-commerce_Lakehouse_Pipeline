@@ -15,7 +15,8 @@ INNER JOIN {{ ref('stg_orders')}} ord
     ON pay.order_id = ord.order_id
 
 LEFT JOIN {{ ref('dim_customers') }} c
-    ON ord.customer_id = c.customer_id
+  ON c.customer_id = ord.customer_id
+  AND c.is_current = true
 
 LEFT JOIN {{ ref('dim_payment_types') }} pt
     ON  pay.payment_type = pt.payment_type

@@ -19,5 +19,6 @@ INNER JOIN {{ ref('stg_orders') }} ord
     ON rev.order_id = ord.order_id
 
 LEFT JOIN {{ ref('dim_customers') }} c
-    ON ord.customer_id = c.customer_id
+  ON c.customer_id = ord.customer_id
+  AND c.is_current = true
 

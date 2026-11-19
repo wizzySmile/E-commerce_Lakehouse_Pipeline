@@ -1,0 +1,71 @@
+version: 2
+
+snapshots:
+  - name: scd2_dim_customers
+    description: "SCD Type 2 history for customers. One row per version, closed with dbt_valid_to when city/state/zip changes."
+    columns:
+      - name: customer_id
+        description: "Natural key from Olist"
+        tests:
+          - not_null
+      - name: customer_unique_id
+        tests:
+          - not_null
+      - name: customer_city
+        tests:
+          - not_null
+      - name: customer_state
+        tests:
+          - not_null
+      - name: customer_zip_code_prefix
+        tests:
+          - not_null
+      - name: dbt_scd_id
+        description: "Surrogate key for this version"
+        tests:
+          - unique
+          - not_null
+      - name: dbt_valid_from
+        tests:
+         - not_null
+
+  - name: scd2_dim_sellers
+    description: "SCD Type 2 history for sellers. One row per version, closed when city/state/zip changes."
+    columns:
+      - name: seller_id
+        description: "Natural key from Olist"
+        tests:
+          - not_null
+      - name: seller_city
+        tests:
+          - not_null
+      - name: seller_state
+        tests:
+          - not_null
+      - name: seller_zip_code_prefix
+        tests:
+          - not_null
+      - name: dbt_scd_id
+        tests:
+          - unique
+          - not_null
+      - name: dbt_valid_from
+        tests:
+          - not_null
+
+  - name: scd2_dim_products
+    description: "SCD Type 2 history for products. One row per version, closed when category or dimensions change."
+    columns:
+      - name: product_id
+        description: "Natural key from Olist"
+        tests:
+          - not_null
+      - name: product_category_name
+        description: "Can be NULL in source - 610 products have no category in Olist"
+      - name: dbt_scd_id
+        tests:
+          - unique
+          - not_null
+      - name: dbt_valid_from
+        tests:
+          - not_null

@@ -7,7 +7,7 @@ SELECT
     s.seller_key,
 
     cast(strftime(
-        cast (o.order_purchase_date  AS date), '%Y%m%d') AS bigint) AS order_date_key,
+        cast (ord.order_purchase_date  AS date), '%Y%m%d') AS bigint) AS order_date_key,
 
     cast(strftime(
         cast(oi.shipping_limit_date AS date), '%Y%m%d') AS bigint) AS shipping_limit_date_key,
@@ -18,15 +18,17 @@ SELECT
 
 FROM {{ ref('stg_order_items') }} oi
 
-INNER JOIN {{ ref('stg_orders') }} o
-    ON oi.order_id = o.order_id
+INNER JOIN {{ ref('stg_orders') }} ord
+    ON oi.order_id = ord.order_id
 
 -- Joining facts to dims to get surrogate keys
 LEFT JOIN {{ ref('dim_customers') }} c
-    ON c.customer_id = o.customer_id
+  ON c.customer_id = ord.customer_id
+  AND c.is_current = true
 
 LEFT JOIN {{ ref('dim_products') }} p
     ON p.product_id = oi.product_id
 
 LEFT JOIN {{ ref('dim_sellers') }} s
-    ON s.seller_id = oi.seller_id
+  ON s.seller_id = oi.seller_id
+  AND s.is_current = true

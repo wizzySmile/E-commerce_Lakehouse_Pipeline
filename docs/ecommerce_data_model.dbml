@@ -1,0 +1,495 @@
+// E-commerce lakehouse DBML for dbdiagram.io.
+// Types/columns are from the current dbt catalog; BIGINT represents DuckDB HUGEINT metrics.
+// Lineage references between layers illustrate model flow and are not enforced database constraints.
+
+// RAW layer
+Table raw.customers {
+  customer_id varchar [pk]
+  customer_unique_id varchar
+  customer_zip_code_prefix varchar
+  customer_city varchar
+  customer_state varchar
+
+  Note: 'Raw source table in ecommerce.main.'
+}
+
+Table raw.geolocation {
+  geolocation_zip_code_prefix varchar
+  geolocation_lat double
+  geolocation_lng double
+  geolocation_city varchar
+  geolocation_state varchar
+
+  Note: 'Raw source table in ecommerce.main.'
+}
+
+Table raw.order_items {
+  order_id varchar [pk]
+  order_item_id bigint [pk]
+  product_id varchar
+  seller_id varchar
+  shipping_limit_date timestamp
+  price double
+  freight_value double
+
+  Note: 'Raw source table in ecommerce.main.'
+}
+
+Table raw.order_payments {
+  order_id varchar [pk]
+  payment_sequential bigint [pk]
+  payment_type varchar
+  payment_installments bigint
+  payment_value double
+
+  Note: 'Raw source table in ecommerce.main.'
+}
+
+Table raw.order_reviews {
+  review_id varchar [pk]
+  order_id varchar
+  review_score bigint
+  review_comment_title varchar
+  review_comment_message varchar
+  review_creation_date timestamp
+  review_answer_timestamp timestamp
+
+  Note: 'Raw source table in ecommerce.main.'
+}
+
+Table raw.orders {
+  order_id varchar [pk]
+  customer_id varchar
+  order_status varchar
+  order_purchase_timestamp timestamp
+  order_approved_at timestamp
+  order_delivered_carrier_date timestamp
+  order_delivered_customer_date timestamp
+  order_estimated_delivery_date timestamp
+
+  Note: 'Raw source table in ecommerce.main.'
+}
+
+Table raw.product_category_translation {
+  product_category_name varchar [pk]
+  product_category_name_english varchar
+
+  Note: 'Raw source table in ecommerce.main.'
+}
+
+Table raw.products {
+  product_id varchar [pk]
+  product_category_name varchar
+  product_name_lenght bigint
+  product_description_lenght bigint
+  product_photos_qty bigint
+  product_weight_g bigint
+  product_length_cm bigint
+  product_height_cm bigint
+  product_width_cm bigint
+
+  Note: 'Raw source table in ecommerce.main.'
+}
+
+Table raw.sellers {
+  seller_id varchar [pk]
+  seller_zip_code_prefix varchar
+  seller_city varchar
+  seller_state varchar
+
+  Note: 'Raw source table in ecommerce.main.'
+}
+
+// STAGING layer
+Table staging.stg_customers {
+  customer_id varchar [pk]
+  customer_unique_id varchar
+  customer_zip_code_prefix varchar
+  customer_city varchar
+  customer_state varchar
+
+  Note: 'Cleaned staging view; upstream raw.customers.'
+}
+
+Table staging.stg_geolocation {
+  geolocation_zip_code_prefix varchar
+  geolocation_lat double
+  geolocation_lng double
+  geolocation_city varchar
+  geolocation_state varchar
+
+  Note: 'Cleaned staging view; upstream raw.geolocation.'
+}
+
+Table staging.stg_order_items {
+  order_id varchar [pk]
+  order_item_id bigint [pk]
+  product_id varchar
+  seller_id varchar
+  shipping_limit_date timestamp
+  price double
+  freight_value double
+
+  Note: 'Cleaned staging view; upstream raw.order_items.'
+}
+
+Table staging.stg_order_payments {
+  order_id varchar [pk]
+  payment_sequential bigint [pk]
+  payment_type varchar
+  payment_installments bigint
+  payment_value double
+
+  Note: 'Cleaned staging view; upstream raw.order_payments.'
+}
+
+Table staging.stg_order_reviews {
+  review_id varchar [pk]
+  order_id varchar
+  review_score bigint
+  review_comment_title varchar
+  review_comment_message varchar
+  review_creation_date timestamp
+  review_answer_timestamp timestamp
+
+  Note: 'Cleaned staging view; upstream raw.order_reviews.'
+}
+
+Table staging.stg_orders {
+  order_id varchar [pk]
+  customer_id varchar
+  order_status varchar
+  order_purchase_date timestamp
+  order_approved_at timestamp
+  order_delivered_carrier_date timestamp
+  order_delivered_customer_date timestamp
+  order_estimated_delivery_date timestamp
+
+  Note: 'Cleaned staging view; upstream raw.orders.'
+}
+
+Table staging.stg_product_category_translation {
+  product_category_name varchar [pk]
+  product_category_name_english varchar
+
+  Note: 'Cleaned staging view; upstream raw.product_category_translation.'
+}
+
+Table staging.stg_products {
+  product_id varchar [pk]
+  product_category_name varchar
+  product_name_lenght bigint
+  product_description_lenght bigint
+  product_photos_qty bigint
+  product_weight_g bigint
+  product_length_cm bigint
+  product_height_cm bigint
+  product_width_cm bigint
+
+  Note: 'Cleaned staging view; upstream raw.products.'
+}
+
+Table staging.stg_sellers {
+  seller_id varchar [pk]
+  seller_zip_code_prefix varchar
+  seller_city varchar
+  seller_state varchar
+
+  Note: 'Cleaned staging view; upstream raw.sellers.'
+}
+
+// SNAPSHOTS layer
+Table snapshots.scd2_dim_customers {
+  customer_id varchar
+  customer_unique_id varchar
+  customer_zip_code_prefix varchar
+  customer_city varchar
+  customer_state varchar
+  dbt_scd_id varchar [pk]
+  dbt_updated_at timestamp
+  dbt_valid_from timestamp
+  dbt_valid_to timestamp
+
+  Note: 'Type 2 history snapshot; upstream staging.stg_customers.'
+}
+
+Table snapshots.scd2_dim_products {
+  product_id varchar
+  product_category_name varchar
+  product_name_lenght bigint
+  product_description_lenght bigint
+  product_photos_qty bigint
+  product_weight_g bigint
+  product_length_cm bigint
+  product_height_cm bigint
+  product_width_cm bigint
+  dbt_scd_id varchar [pk]
+  dbt_updated_at timestamp
+  dbt_valid_from timestamp
+  dbt_valid_to timestamp
+
+  Note: 'Type 2 history snapshot; upstream staging.stg_products.'
+}
+
+Table snapshots.scd2_dim_sellers {
+  seller_id varchar
+  seller_zip_code_prefix varchar
+  seller_city varchar
+  seller_state varchar
+  dbt_scd_id varchar [pk]
+  dbt_updated_at timestamp
+  dbt_valid_from timestamp
+  dbt_valid_to timestamp
+
+  Note: 'Type 2 history snapshot; upstream staging.stg_sellers.'
+}
+
+// CORE layer
+Table core.dim_customers {
+  customer_key varchar [pk]
+  customer_id varchar
+  customer_unique_id varchar
+  customer_zip_code_prefix varchar
+  customer_city varchar
+  customer_state varchar
+  valid_from timestamp
+  valid_to timestamp
+  is_current boolean
+
+  Note: 'dbt lineage from: snapshots.scd2_dim_customers.'
+}
+
+Table core.dim_dates {
+  date_key bigint [pk]
+  full_date date
+  year bigint
+  month bigint
+  day bigint
+  month_name varchar
+  weekday_name varchar
+  day_of_week bigint
+  is_weekend boolean
+  quarter bigint
+
+  Note: 'Generated calendar dimension.'
+}
+
+Table core.dim_payment_types {
+  payment_type_key bigint [pk]
+  payment_type varchar [unique, not null]
+
+  Note: 'dbt lineage from: staging.stg_order_payments.'
+}
+
+Table core.dim_products {
+  product_key varchar [pk]
+  product_id varchar
+  product_category varchar
+  product_name_lenght bigint
+  product_description_lenght bigint
+  product_photos_qty bigint
+  product_weight_g bigint
+  product_length_cm bigint
+  product_height_cm bigint
+  product_width_cm bigint
+  valid_from timestamp
+  valid_to timestamp
+  is_current boolean
+
+  Note: 'dbt lineage from: snapshots.scd2_dim_products, staging.stg_product_category_translation.'
+}
+
+Table core.dim_sellers {
+  seller_key varchar [pk]
+  seller_id varchar
+  seller_zip_code_prefix varchar
+  seller_city varchar
+  seller_state varchar
+  valid_from timestamp
+  valid_to timestamp
+  is_current boolean
+
+  Note: 'dbt lineage from: snapshots.scd2_dim_sellers.'
+}
+
+Table core.fact_orders {
+  order_id varchar [pk]
+  customer_key varchar
+  order_date_key bigint
+  order_status varchar
+  delivery_days_actual bigint
+  delivery_days_estimated bigint
+  is_late_delivery boolean
+  total_items bigint
+  total_products bigint
+  total_order_value double
+  total_freight_value double
+
+  Note: 'dbt lineage from: staging.stg_orders, staging.stg_order_items, core.dim_customers.'
+}
+
+Table core.fact_payments {
+  order_id varchar [pk]
+  payment_sequential bigint [pk]
+  payment_type_key bigint
+  customer_key varchar
+  order_date_key bigint
+  payment_installments bigint
+  payment_value double
+
+  Note: 'dbt lineage from: staging.stg_order_payments, staging.stg_orders, core.dim_customers, core.dim_payment_types.'
+}
+
+Table core.fact_reviews {
+  review_id varchar [pk]
+  order_id varchar
+  customer_key varchar
+  review_date_key bigint
+  review_answer_date_key bigint
+  days_to_answer bigint
+  review_score bigint
+  review_comment_title varchar
+  review_comment_message varchar
+
+  Note: 'dbt lineage from: staging.stg_order_reviews, staging.stg_orders, core.dim_customers.'
+}
+
+Table core.fact_sales {
+  order_id varchar [pk]
+  order_item_id bigint [pk]
+  customer_key varchar
+  product_key varchar
+  seller_key varchar
+  order_date_key bigint
+  shipping_limit_date_key bigint
+  price double
+  freight_value double
+  total_sales_amount double
+
+  Note: 'dbt lineage from: staging.stg_order_items, staging.stg_orders, core.dim_customers, core.dim_products, core.dim_sellers.'
+}
+
+// MARTS layer
+Table marts.mart_customer_metrics {
+  customer_key varchar [pk]
+  customer_unique_id varchar
+  customer_city varchar
+  customer_state varchar
+  total_orders bigint
+  first_order_date date
+  last_order_date date
+  day_since_last_order bigint
+  lifetime_value double
+  avg_order_value double
+  lifetime_freight_payed double
+  total_items_purchased bigint
+  avg_delivery_days double
+  late_delivery_count bigint
+  avg_review_score double
+  total_review bigint
+  avg_installments double
+  distinct_payment_methods_used bigint
+
+  Note: 'dbt lineage from: core.fact_orders, core.dim_dates, core.fact_reviews, core.fact_payments, core.dim_customers.'
+}
+
+Table marts.mart_marketing_performance {
+  year bigint [pk]
+  month bigint [pk]
+  month_name varchar
+  customer_state varchar [pk]
+  customer_city varchar [pk]
+  total_customers bigint
+  total_orders bigint
+  total_revenue double
+  avg_order_value double
+  avg_delivery_days double
+  late_delivery_count bigint
+
+  Note: 'dbt lineage from: core.fact_orders, core.dim_dates, core.dim_customers.'
+}
+
+Table marts.mart_monthly_revenue {
+  year bigint [pk]
+  month bigint [pk]
+  month_name varchar
+  month_start_date date
+  month_end_date date
+  total_orders bigint
+  total_customers bigint
+  total_items_sold bigint
+  total_revenue double
+  total_freight double
+  total_revenue_with_freight double
+  avg_order_value double
+  avg_delivery_days double
+  late_delivery_count bigint
+  late_delivery_rate double
+  avg_order_value_check double
+
+  Note: 'dbt lineage from: core.fact_orders, core.dim_dates.'
+}
+
+Table marts.mart_operations_performance {
+  year bigint [pk]
+  month bigint [pk]
+  month_name varchar
+  customer_state varchar [pk]
+  total_orders bigint
+  total_items_shipped bigint
+  avg_delivery_days double
+  avg_estimated_days double
+  total_freight_cost double
+  late_delivery_count bigint
+  orders_for_rate bigint
+
+  Note: 'dbt lineage from: core.fact_orders, core.dim_dates, core.dim_customers.'
+}
+
+// Source-to-staging lineage (shared source keys).
+Ref: raw.customers.customer_id - staging.stg_customers.customer_id
+Ref: raw.orders.order_id - staging.stg_orders.order_id
+Ref: raw.order_items.(order_id, order_item_id) - staging.stg_order_items.(order_id, order_item_id)
+Ref: raw.order_payments.(order_id, payment_sequential) - staging.stg_order_payments.(order_id, payment_sequential)
+Ref: raw.order_reviews.review_id - staging.stg_order_reviews.review_id
+Ref: raw.products.product_id - staging.stg_products.product_id
+Ref: raw.sellers.seller_id - staging.stg_sellers.seller_id
+Ref: raw.product_category_translation.product_category_name - staging.stg_product_category_translation.product_category_name
+// Geolocation lineage is shown in table notes; its zip prefix is not unique enough for a Ref.
+
+// Staging-to-snapshot lineage; snapshots contain multiple versions per business key.
+Ref: staging.stg_customers.customer_id < snapshots.scd2_dim_customers.customer_id
+Ref: staging.stg_products.product_id < snapshots.scd2_dim_products.product_id
+Ref: staging.stg_sellers.seller_id < snapshots.scd2_dim_sellers.seller_id
+
+// Staging-to-core lineage; these links may represent transformed or aggregated rows.
+Ref: staging.stg_orders.order_id - core.fact_orders.order_id
+Ref: staging.stg_orders.order_id < core.fact_sales.order_id
+Ref: staging.stg_orders.order_id < core.fact_payments.order_id
+Ref: staging.stg_orders.order_id < core.fact_reviews.order_id
+Ref: core.fact_orders.order_id < staging.stg_order_items.order_id
+Ref: staging.stg_order_items.(order_id, order_item_id) - core.fact_sales.(order_id, order_item_id)
+Ref: staging.stg_order_payments.(order_id, payment_sequential) - core.fact_payments.(order_id, payment_sequential)
+Ref: staging.stg_order_reviews.review_id - core.fact_reviews.review_id
+Ref: core.dim_payment_types.payment_type < staging.stg_order_payments.payment_type
+Ref: staging.stg_customers.customer_id < core.dim_customers.customer_id
+Ref: staging.stg_products.product_id < core.dim_products.product_id
+Ref: staging.stg_sellers.seller_id < core.dim_sellers.seller_id
+
+// Core star-schema relationships (fact foreign keys to dimension primary keys).
+Ref: core.fact_orders.customer_key > core.dim_customers.customer_key
+Ref: core.fact_orders.order_date_key > core.dim_dates.date_key
+Ref: core.fact_sales.customer_key > core.dim_customers.customer_key
+Ref: core.fact_sales.product_key > core.dim_products.product_key
+Ref: core.fact_sales.seller_key > core.dim_sellers.seller_key
+Ref: core.fact_sales.order_date_key > core.dim_dates.date_key
+Ref: core.fact_sales.shipping_limit_date_key > core.dim_dates.date_key
+Ref: core.fact_payments.customer_key > core.dim_customers.customer_key
+Ref: core.fact_payments.payment_type_key > core.dim_payment_types.payment_type_key
+Ref: core.fact_payments.order_date_key > core.dim_dates.date_key
+Ref: core.fact_reviews.customer_key > core.dim_customers.customer_key
+Ref: core.fact_reviews.review_date_key > core.dim_dates.date_key
+Ref: core.fact_reviews.review_answer_date_key > core.dim_dates.date_key
+
+// Customer mart retains a direct customer dimension key; other marts are aggregates.
+Ref: marts.mart_customer_metrics.customer_key - core.dim_customers.customer_key
