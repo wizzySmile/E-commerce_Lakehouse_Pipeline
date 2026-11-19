@@ -1,0 +1,226 @@
+SELECT
+    {{ dbt_utils.generate_surrogate_key(['customer_id']) }} AS customer_key,
+    customer_id,
+    customer_unique_id,
+    customer_zip_code_prefix,
+    customer_city,
+    customer_state,
+    dbt_valid_from AS valid_from,
+    dbt_valid_to AS valid_to,
+    CASE WHEN dbt_valid_to IS NULL 
+        THEN true ELSE false 
+    END AS is_current
+FROM {{ ref('scd2_dim_customers') }}
+
+
+with date_spine as (
+    select
+        cast(d as date) as date_day
+    from range(
+        date '2016-01-01',
+        date '2021-01-01',
+        interval 1 day
+    ) as tbl(d)
+)
+
+select
+    cast(strftime(date_day, '%Y%m%d') as bigint) as date_key,
+    date_day as full_date,
+    year(date_day) as year,
+    month(date_day) as month,
+    day(date_day) as day,
+    strftime(date_day, '%B') as month_name,
+    strftime(date_day, '%A') as weekday_name,
+    dayofweek(date_day) as day_of_week, -- 0 = Sunday, 6 = Saturday in DuckDB
+    case when dayofweek(date_day) in (0, 6) then true else false end as is_weekend,
+    quarter(date_day) as quarter
+from date_spine
+
+
+
+WITH pay_type AS
+    (
+    SELECT DISTINCT
+    payment_type
+    FROM {{ ref('stg_order_payments') }}
+    WHERE payment_type IS NOT NULL
+    )
+SELECT 
+    ROW_NUMBER() OVER(ORDER BY payment_type) AS payment_type_key,
+    payment_type
+FROM pay_type
+
+
+
+
+SELECT 
+    {{ dbt_utils.generate_surrogate_key(['stg_prd.product_id', 'stg_prd.dbt_valid_from']) }} AS product_key,
+    stg_prd.product_id,
+    COALESCE(
+        CASE 
+            WHEN stg_prd.product_category_name = 'portateis_cozinha_e_preparadores_de_alimentos' 
+                THEN 'portable_kitchen_and_food_preparers'
+            ELSE stg_prd_cat.product_category_name_english 
+        END, 
+        stg_prd.product_category_name, 
+        'unknown') AS product_category,
+    stg_prd.product_name_lenght,
+    stg_prd.product_description_lenght,
+    stg_prd.product_photos_qty,
+    stg_prd.product_weight_g,
+    stg_prd.product_length_cm,
+    stg_prd.product_height_cm,
+    stg_prd.product_width_cm,
+    stg_prd.dbt_valid_from AS valid_from,
+    stg_prd.dbt_valid_to AS valid_to,
+    CASE WHEN stg_prd.dbt_valid_to IS NULL 
+        THEN true ELSE false 
+    END AS is_current
+
+FROM {{ ref('scd2_dim_products') }} stg_prd
+    LEFT JOIN {{ ref('stg_product_category_translation') }} stg_prd_cat
+        ON stg_prd.product_category_name = stg_prd_cat.product_category_name
+
+
+
+
+
+SELECT 
+    {{ dbt_utils.generate_surrogate_key(['seller_id', 'dbt_valid_from']) }} AS seller_key,
+    seller_id,
+    seller_zip_code_prefix,
+    seller_city,
+    seller_state,
+    dbt_valid_from AS valid_from,
+    dbt_valid_to AS valid_to,
+    CASE WHEN dbt_valid_to IS NULL 
+        THEN true ELSE false 
+    END AS is_current
+FROM {{ ref('scd2_dim_sellers') }}
+
+
+
+
+
+
+SELECT 
+    ord.order_id,
+    c.customer_key,
+    CAST(strftime(
+        CAST(ord.order_purchase_date AS date), '%Y%m%d') AS bigint) AS order_date_key,
+    ord.order_status,
+    DATEDIFF('day', CAST(ord.order_purchase_date AS date), CAST(ord.order_delivered_customer_date AS date)) AS delivery_days_actual,
+    DATEDIFF('day', CAST(ord.order_purchase_date AS date), CAST(ord.order_estimated_delivery_date AS date)) AS delivery_days_estimated,
+    CASE
+        WHEN ord.order_delivered_customer_date > ord.order_estimated_delivery_date THEN TRUE
+        ELSE FALSE
+    END AS is_late_delivery,
+    COUNT(DISTINCT oi.order_item_id) AS total_items,
+    COUNT(DISTINCT oi.product_id) AS total_products,
+    COALESCE(SUM(oi.price), 0) AS total_order_value,
+    COALESCE(SUM(oi.freight_value), 0) AS total_freight_value
+FROM {{ ref('stg_orders') }} ord
+
+LEFT JOIN {{ ref('stg_order_items') }} oi
+    ON ord.order_id = oi.order_id
+
+LEFT JOIN {{ ref('dim_customers') }} c
+  ON c.customer_id = ord.customer_id
+  AND c.is_current = true
+
+GROUP BY ALL
+
+
+
+
+SELECT 
+    pay.order_id,
+    pay.payment_sequential,
+    pt.payment_type_key,
+    c.customer_key,
+    CAST(strftime(
+        CAST(order_purchase_date AS date),'%Y%m%d') AS bigint) AS order_date_key,
+
+    pay.payment_installments,
+    pay.payment_value
+
+FROM {{ ref('stg_order_payments') }} pay
+
+INNER JOIN {{ ref('stg_orders')}} ord
+    ON pay.order_id = ord.order_id
+
+LEFT JOIN {{ ref('dim_customers') }} c
+  ON c.customer_id = ord.customer_id
+  AND c.is_current = true
+
+LEFT JOIN {{ ref('dim_payment_types') }} pt
+    ON  pay.payment_type = pt.payment_type
+
+
+
+
+SELECT
+    rev.review_id,
+    ord.order_id,
+    c.customer_key,
+    CAST(strftime(
+        CAST(rev.review_creation_date AS date), '%Y%m%d') AS bigint) AS review_date_key,
+    CAST(strftime(
+        CAST(rev.review_answer_timestamp AS date), '%Y%m%d') AS bigint) AS review_answer_date_key,
+
+    -- days between review created and seller answered
+    date_diff('day', CAST(rev.review_creation_date AS date), CAST(rev.review_answer_timestamp AS date)) AS days_to_answer,
+    rev.review_score,
+    rev.review_comment_title,
+    rev.review_comment_message
+
+FROM {{ ref('stg_order_reviews') }} rev
+
+INNER JOIN {{ ref('stg_orders') }} ord
+    ON rev.order_id = ord.order_id
+
+LEFT JOIN {{ ref('dim_customers') }} c
+  ON c.customer_id = ord.customer_id
+  AND c.is_current = true
+
+
+
+
+
+
+
+
+SELECT 
+    oi.order_id,
+    oi.order_item_id,
+
+    c.customer_key,
+    p.product_key,
+    s.seller_key,
+
+    cast(strftime(
+        cast (ord.order_purchase_date  AS date), '%Y%m%d') AS bigint) AS order_date_key,
+
+    cast(strftime(
+        cast(oi.shipping_limit_date AS date), '%Y%m%d') AS bigint) AS shipping_limit_date_key,
+
+    oi.price,
+    oi.freight_value,
+    COALESCE(oi.price, 0) + COALESCE(oi.freight_value, 0) AS total_sales_amount
+
+FROM {{ ref('stg_order_items') }} oi
+
+INNER JOIN {{ ref('stg_orders') }} ord
+    ON oi.order_id = ord.order_id
+
+-- Joining facts to dims to get surrogate keys
+LEFT JOIN {{ ref('dim_customers') }} c
+  ON c.customer_id = ord.customer_id
+  AND c.is_current = true
+
+LEFT JOIN {{ ref('dim_products') }} p
+    ON p.product_id = oi.product_id
+
+LEFT JOIN {{ ref('dim_sellers') }} s
+  ON s.seller_id = oi.seller_id
+  AND s.is_current = true
