@@ -1,0 +1,40 @@
+version: 1
+type: metrics_view
+model: mart_customer_metrics
+
+timeseries: last_order_date
+
+dimensions:
+  - name: customer_state
+    column: customer_state
+  - name: customer_city
+    column: customer_city
+  - name: distinct_payment_methods_used
+    column: distinct_payment_methods_used
+
+measures:
+  - name: customers
+    expression: count(distinct customer_unique_id)
+  - name: total_orders
+    expression: sum(total_orders)
+  - name: lifetime_value
+    expression: sum(lifetime_value)
+  - name: avg_order_value
+    expression: avg(avg_order_value)
+  - name: avg_delivery_days
+    expression: avg(avg_delivery_days)
+  - name: late_delivery_count
+    expression: sum(late_delivery_count)
+  - name: avg_review_score
+    expression: avg(avg_review_score)
+  - name: total_reviews
+    expression: sum(total_review)
+
+explore:
+  defaults:
+    time_range: P12M
+    measures:
+      - customers
+      - total_orders
+      - lifetime_value
+      - avg_order_value

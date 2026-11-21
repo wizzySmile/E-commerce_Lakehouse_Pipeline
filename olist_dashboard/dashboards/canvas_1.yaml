@@ -1,0 +1,8 @@
+# Explore YAML
+# Reference documentation: https://docs.rilldata.com/reference/project-files/canvas-dashboards
+
+type: canvas
+display_name: "Canvas Dashboard"
+defaults:
+  time_range: PT24H
+  comparison_mode: time

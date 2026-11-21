@@ -1,0 +1,77 @@
+# Metrics view YAML
+# Reference documentation: https://docs.rilldata.com/reference/project-files/metrics-views
+# This file was generated using AI.
+
+version: 1
+type: metrics_view 
+
+display_name: Monthly Revenue Metrics (mart_monthly_revenue)
+connector: duckdb
+model: mart_monthly_revenue
+timeseries: month_start_date
+
+dimensions:
+  - name: month_name
+    display_name: Month Name
+    column: month_name
+  - name: month_start_date
+    display_name: Month Start Date
+    column: month_start_date
+  - name: month_end_date
+    display_name: Month End Date
+    column: month_end_date
+
+measures:
+  - name: months_count_measure
+    display_name: Number of Months
+    expression: COUNT(*)
+    description: Counts the number of monthly records in the table.
+    format_preset: humanize
+  - name: total_orders_sum_measure
+    display_name: Total Orders
+    expression: SUM(total_orders)
+    description: Sums total orders across all months.
+    format_preset: humanize
+  - name: total_customers_sum_measure
+    display_name: Total Customers
+    expression: SUM(total_customers)
+    description: Sums total customers across all months.
+    format_preset: humanize
+  - name: total_items_sold_sum_measure
+    display_name: Total Items Sold
+    expression: SUM(total_items_sold)
+    description: Sums total items sold across all months.
+    format_preset: humanize
+  - name: total_revenue_sum_measure
+    display_name: Total Revenue
+    expression: SUM(total_revenue)
+    description: Sums total revenue across all months.
+    format_preset: humanize
+  - name: total_freight_sum_measure
+    display_name: Total Freight
+    expression: SUM(total_freight)
+    description: Sums total freight charges across all months.
+    format_preset: humanize
+  - name: total_revenue_with_freight_sum_measure
+    display_name: Total Revenue (Including Freight)
+    expression: SUM(total_revenue_with_freight)
+    description: Sums total revenue including freight across all months.
+    format_preset: humanize
+  - name: avg_order_value_avg_measure
+    display_name: Average Order Value (Avg)
+    expression: AVG(avg_order_value)
+    description: Averages the monthly average order value across all months.
+    format_preset: humanize
+  - name: avg_delivery_days_avg_measure
+    display_name: Average Delivery Days (Avg)
+    expression: AVG(avg_delivery_days)
+    description: Averages the monthly average delivery days across all months.
+    format_preset: humanize
+  - name: late_delivery_count_sum_measure
+    display_name: Late Deliveries
+    expression: SUM(late_delivery_count)
+    description: Sums the count of late deliveries across all months.
+    format_preset: humanize
+
+explore:
+  display_name: Monthly Revenue Metrics (mart_monthly_revenue) dashboard

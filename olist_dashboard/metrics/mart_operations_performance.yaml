@@ -1,0 +1,69 @@
+version: 1
+type: metrics_view
+
+model: mart_operations_performance
+
+timeseries: month_start_date
+
+dimensions:
+  - name: month_start_date
+    expression: make_date(year, month, 1)
+
+  - name: year
+    column: year
+
+  - name: month
+    column: month
+
+  - name: month_name
+    column: month_name
+
+  - name: customer_state
+    column: customer_state
+
+measures:
+  - name: total_orders
+    expression: SUM(total_orders)
+    format_preset: humanize
+
+  - name: total_items_shipped
+    expression: SUM(total_items_shipped)
+    format_preset: humanize
+
+  - name: total_freight_cost
+    expression: SUM(total_freight_cost)
+    format_preset: currency_usd
+
+  - name: late_delivery_count
+    expression: SUM(late_delivery_count)
+    format_preset: humanize
+
+  - name: orders_for_rate
+    expression: SUM(orders_for_rate)
+    format_preset: humanize
+
+  - name: avg_delivery_days
+    expression: AVG(avg_delivery_days)
+    format_d3: ",.2f"
+
+  - name: avg_estimated_days
+    expression: AVG(avg_estimated_days)
+    format_d3: ",.2f"
+
+  - name: late_delivery_rate
+    expression: SUM(late_delivery_count) / NULLIF(SUM(orders_for_rate), 0)
+    format_preset: percentage
+    valid_percent_of_total: false
+
+explore:
+  defaults:
+    time_range: P12M
+    comparison_mode: time
+    measures:
+      - total_orders
+      - total_items_shipped
+      - total_freight_cost
+      - late_delivery_rate
+    dimensions:
+      - customer_state
+      - month_name

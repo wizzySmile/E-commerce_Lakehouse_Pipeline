@@ -1,0 +1,79 @@
+type: canvas
+display_name: "Customer Metrics"
+
+# Report-style dashboard for customer KPIs and trends
+
+defaults:
+  time_range: P12M
+  comparison_mode: time
+
+rows:
+  - height: 72px
+    items:
+      - width: 12
+        markdown:
+          content: |
+            # Customer Metrics
+
+            Key customer KPIs, trends, and breakdowns.
+
+  - height: 220px
+    items:
+      - width: 12
+        kpi_grid:
+          metrics_view: mart_customer_metrics
+          measures:
+            - customers
+            - total_orders
+            - lifetime_value
+            - avg_order_value
+            - avg_review_score
+            - late_delivery_count
+          comparison:
+            - percent_change
+            - previous
+          sparkline: right
+
+  - height: 420px
+    items:
+      - width: 8
+        line_chart:
+          metrics_view: mart_customer_metrics
+          title: "Customers over time"
+          x:
+            field: last_order_date
+            type: temporal
+          y:
+            field: customers
+            type: quantitative
+            zeroBasedOrigin: true
+      - width: 4
+        leaderboard:
+          metrics_view: mart_customer_metrics
+          title: "Top states"
+          dimensions:
+            - customer_state
+          measures:
+            - lifetime_value
+            - customers
+            - total_orders
+          num_rows: 10
+
+  - height: 420px
+    items:
+      - width: 12
+        table:
+          metrics_view: mart_customer_metrics
+          title: "Recent periods"
+          sort_by: last_order_date
+          sort_dir: desc
+          columns:
+            - last_order_date
+            - customers
+            - total_orders
+            - lifetime_value
+            - avg_order_value
+            - avg_review_score
+            - late_delivery_count
+            - avg_delivery_days
+            - total_reviews

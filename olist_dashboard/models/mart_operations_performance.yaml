@@ -1,0 +1,11 @@
+# Model YAML
+# Loads local parquet into the default DuckDB OLAP connector as table `mart_operations_performance`
+
+type: model
+materialize: true
+
+connector: duckdb
+
+sql: |
+  SELECT *
+  FROM read_parquet('data/mart_operations_performance.parquet')

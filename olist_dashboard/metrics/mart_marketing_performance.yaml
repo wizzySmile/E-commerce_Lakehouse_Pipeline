@@ -1,0 +1,64 @@
+version: 1
+type: metrics_view
+
+model: mart_marketing_performance
+
+timeseries: month_start_date
+
+dimensions:
+  - name: month_start_date
+    expression: make_date(year, month, 1)
+
+  - name: month_name
+    column: month_name
+
+  - name: customer_state
+    column: customer_state
+
+  - name: customer_city
+    column: customer_city
+
+  - name: year
+    column: year
+
+  - name: month
+    column: month
+
+measures:
+  - name: total_customers
+    expression: SUM(total_customers)
+    format_preset: humanize
+
+  - name: total_orders
+    expression: SUM(total_orders)
+    format_preset: humanize
+
+  - name: total_revenue
+    expression: SUM(total_revenue)
+    format_preset: currency_usd
+
+  - name: avg_order_value
+    expression: AVG(avg_order_value)
+    format_preset: currency_usd
+    valid_percent_of_total: false
+
+  - name: avg_delivery_days
+    expression: AVG(avg_delivery_days)
+    format_d3: ",.2f"
+    valid_percent_of_total: false
+
+  - name: late_delivery_count
+    expression: SUM(late_delivery_count)
+    format_preset: humanize
+
+explore:
+  defaults:
+    time_range: P12M
+    measures:
+      - total_revenue
+      - total_orders
+      - total_customers
+    dimensions:
+      - customer_state
+      - customer_city
+      - month_name

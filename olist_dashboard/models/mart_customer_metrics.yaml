@@ -1,0 +1,6 @@
+type: model
+
+# Materialized by default (table in the default DuckDB OLAP connector)
+sql: |
+  SELECT *
+  FROM read_parquet('data/mart_customer_metrics.parquet')

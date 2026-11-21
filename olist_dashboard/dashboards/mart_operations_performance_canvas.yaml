@@ -1,0 +1,96 @@
+type: canvas
+display_name: "Operations Performance"
+
+defaults:
+  time_range: P12M
+  comparison_mode: time
+
+rows:
+  - height: 90px
+    items:
+      - width: 12
+        markdown:
+          content: |
+            # Operations Performance
+
+            Key operations and fulfillment metrics over the last 12 months.
+
+  - height: 200px
+    items:
+      - width: 12
+        kpi_grid:
+          metrics_view: mart_operations_performance
+          measures:
+            - total_orders
+            - total_items_shipped
+            - total_freight_cost
+            - avg_delivery_days
+            - late_delivery_rate
+          comparison:
+            - delta
+            - percent_change
+            - previous
+          sparkline: right
+
+  - height: 380px
+    items:
+      - width: 6
+        line_chart:
+          metrics_view: mart_operations_performance
+          title: "Total Orders (Monthly)"
+          x:
+            field: month_start_date
+            type: temporal
+          y:
+            field: total_orders
+            type: quantitative
+            zeroBasedOrigin: true
+      - width: 6
+        combo_chart:
+          metrics_view: mart_operations_performance
+          title: "Freight Cost and Avg Delivery Days (Monthly)"
+          color:
+            field: measures
+            type: value
+            legendOrientation: top
+          x:
+            field: month_start_date
+            type: temporal
+          y1:
+            field: total_freight_cost
+            type: quantitative
+            mark: bar
+            zeroBasedOrigin: true
+          y2:
+            field: avg_delivery_days
+            type: quantitative
+            mark: line
+            zeroBasedOrigin: true
+
+  - height: 420px
+    items:
+      - width: 6
+        leaderboard:
+          metrics_view: mart_operations_performance
+          title: "Performance by State"
+          dimensions:
+            - customer_state
+          measures:
+            - total_orders
+            - total_freight_cost
+            - late_delivery_rate
+          num_rows: 15
+      - width: 6
+        table:
+          metrics_view: mart_operations_performance
+          title: "Recent Months"
+          sort_by: month_start_date
+          sort_dir: desc
+          columns:
+            - month_start_date
+            - month_name
+            - total_orders
+            - total_items_shipped
+            - total_freight_cost
+            - avg_delivery_days
+            - late_delivery_rate
