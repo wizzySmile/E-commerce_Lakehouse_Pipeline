@@ -3,5 +3,5 @@ ecommerce_lakehouse:
   outputs:
     dev:
       type: duckdb
-      path: "C:/projects/E-commerce_Lakehouse_Pipeline/data/ecommerce.duckdb"
+      path: "{{ env_var('DUCKDB_PATH', 'C:/projects/E-commerce_Lakehouse_Pipeline/data/ecommerce.duckdb') }}"
       threads: 4

@@ -24,6 +24,9 @@ The repository also includes a detailed [data model ERD](docs/ecommerce_data_mod
 - [dbt](https://www.getdbt.com/) for data transformation, snapshots, testing, and documentation
 - [Rill](https://www.rilldata.com/) for interactive business dashboards
 - SQL and CSV for the source and transformation layers
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) with WSL 2 for running the project containers
+
+Python, DuckDB, dbt, and Rill run inside Docker containers; they do not need to be installed separately on your computer.
 
 ## Data Model
 
@@ -109,85 +112,48 @@ The marts provide reusable outputs for dashboards and reporting:
 
 ### Prerequisites
 
-- Python 3.10 or newer
-- dbt DuckDB adapter
-- DuckDB Python package
-- Rill Developer, if you want to run the dashboard locally
+- Docker Desktop for Windows with the WSL 2 backend. [Download Docker Desktop](https://www.docker.com/products/docker-desktop/).
+- WSL 2 enabled in Windows and Docker Desktop configured to use its WSL 2 backend.
 
-### 1. Create a virtual environment
+You do **not** need to install Python, dbt, DuckDB, or Rill on your computer. They all run inside Docker containers.
 
-On Windows PowerShell:
+### Run dbt
 
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-```
-
-Install the Python packages used by the project:
+Start Docker Desktop and wait for it to finish starting. Then open PowerShell or another terminal and change to the project root (the folder containing `docker-compose.yaml`):
 
 ```powershell
-python -m pip install --upgrade pip
-python -m pip install duckdb dbt-duckdb
+cd C:\projects\E-commerce_Lakehouse_Pipeline
 ```
 
-### 2. Load the source CSV files
+If you cloned the repository to a different location, use that folder's path. Do not run Compose from inside `olist_dashboard`.
 
-Run the loader script from the repository root:
+Run the dbt transformations:
 
 ```powershell
-python -c "import duckdb, pathlib; con=duckdb.connect('data/ecommerce.duckdb'); con.execute(pathlib.Path('dbt_project/sql/load_raw_tables.sql').read_text()); con.close()"
+docker compose up dbt
 ```
 
-This creates or replaces the raw tables in DuckDB's `main` schema.
-
-### 3. Install dbt packages
-
-```powershell
-cd dbt_project
-dbt deps --profiles-dir ..\profiles
-```
-
-### 4. Run dbt transformations
-
-Build snapshots, core models, and analytics marts:
-
-```powershell
-dbt snapshot --profiles-dir ..\profiles
-dbt run --profiles-dir ..\profiles
-dbt test --profiles-dir ..\profiles
-```
-
-To generate the dbt documentation:
-
-```powershell
-dbt docs generate --profiles-dir ..\profiles
-dbt docs serve --profiles-dir ..\profiles
-```
-
-The dbt profile is configured in [profiles/profiles.yml](profiles/profiles.yml). It uses `data/ecommerce.duckdb` as the local database.
+Run the services one by one and in order, especially if your computer has limited memory. Do not start all three services at once.
 
 ## Export Dashboards
 
-Return to the repository root and export the approved models to Parquet:
+From the project root, export the dashboard data to Parquet:
 
 ```powershell
-cd ..
-python export_marts.py
-python export_parquet.py
+docker compose up python-export
 ```
 
-The exports are written to [olist_dashboard/](olist_dashboard/) and can be consumed by Rill.
+The exported files are written to `olist_dashboard/` for Rill to use.
 
 ## Run the Dashboard
 
-From the repository root:
+From the project root, start Rill:
 
 ```powershell
-cd olist_dashboard
-rill start
+docker compose up rill
 ```
 
-Rill will open a local dashboard for exploring the exported metrics.
+Open [http://localhost:9009](http://localhost:9009) in your browser. Press **Ctrl+C** in the terminal to stop Rill.
 
 A deployed example is available at [Rill Dashboard](https://ui.rilldata.com/Wisdom/olist_dashboard).
 
@@ -207,13 +173,21 @@ The project includes reconciliation tests for:
 Run all dbt tests with:
 
 ```powershell
-dbt test --profiles-dir ..\profiles
+docker compose run --rm dbt dbt test --project-dir /usr/app/dbt --profiles-dir /root/.dbt
 ```
 
 ## Data Source
 
-The source data is the public Olist Brazilian e-commerce dataset. It contains marketplace orders, customers, sellers, products, items, payments, reviews, geolocation, and category information.
+The source data is the public Olist Brazilian e-commerce dataset. It contains marketplace orders, customers, sellers, products, order items, payments, reviews, geolocation, and product category translation.
 
 ## License
 
-No license is currently specified for this repository. Add a license file before using or distributing the project externally.
+MIT License
+
+Copyright (c) 2026 Wisdom Mpamugo Chinemere
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this Project and associated documentation files (the "Project"), to deal
+in the Project without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Project...

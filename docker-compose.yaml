@@ -1,0 +1,36 @@
+services:
+  dbt:
+    build:
+      context: .
+      dockerfile: Dockerfile.dbt
+    environment:
+      - DUCKDB_PATH=/usr/app/data/ecommerce.duckdb
+    volumes:
+      - ./dbt_project:/usr/app/dbt
+      - ./profiles:/root/.dbt
+      - ./data:/usr/app/data
+
+  python-export:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./data:/app/data
+      - ./olist_dashboard:/app/olist_dashboard
+    depends_on:
+      - dbt
+
+  rill:
+    image: rilldata/rill:latest
+    ports:
+            - "9009:9009"
+    volumes:
+            - ./olist_dashboard:/app
+            - ./olist_dashboard/data:/mnt/c/projects/E-commerce_Lakehouse_Pipeline/olist_dashboard/data
+    working_dir: /app
+    command: ["start", "--port", "9009", "--no-open"]
+    depends_on:
+      - dbt
+      - python-export
+
+

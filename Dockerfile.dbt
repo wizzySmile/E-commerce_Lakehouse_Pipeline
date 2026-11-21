@@ -1,0 +1,3 @@
+FROM ghcr.io/kestra-io/dbt-duckdb:latest
+WORKDIR /usr/app/dbt
+CMD ["dbt", "run", "--project-dir", "/usr/app/dbt", "--profiles-dir", "/root/.dbt"]
